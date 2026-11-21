@@ -81,4 +81,12 @@ Rules:
 - Do not start work without an issue. Size the task first.
 - One issue, one branch, one PR.
 - Run the validators before committing.
+- Check whether the change needs a `CHANGELOG.md` entry and a new tag (section 8).
 - Do not commit or push unless asked; do not touch unrelated files.
+
+## 8. Changelog and versions
+
+- Versions are git tags `vX.Y.Z` (semver); `CHANGELOG.md` has one entry per tag (Keep a Changelog format) and an `Unreleased` section for pending changes.
+- Whenever files are added or modified, check whether `CHANGELOG.md` needs an entry and whether a new tag is needed. Update the changelog in the same PR as the change.
+- Bump: patch = fixes and docs-only corrections, minor = new skills/features/options, major = breaking changes to install or skill behavior.
+- Tags are created only after the PR is merged, pointing at `main`, and only with the user's approval. `install.sh` installs the latest tag by default, so an untagged change is not delivered to users.
