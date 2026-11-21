@@ -12,6 +12,17 @@ A personal hub of agent skills, designed for my own workflow and installable int
 
 List them any time with `./install.sh --list`.
 
+## Supported platforms
+
+| Platform | Status |
+| --- | --- |
+| macOS, Linux | Supported (bash) |
+| Windows via WSL | Should work like Linux; untested |
+| Windows via Git Bash | Should work; untested. See the symlink note below |
+| Windows native (PowerShell, cmd) | Not supported: the scripts are bash |
+
+On Git Bash, `ln -s` creates copies instead of symlinks unless Windows developer mode and `MSYS=winsymlinks:nativestrict` are enabled. Copies work, but are not refreshed when `.agents/skills/<name>` changes.
+
 ## Install
 
 ### Requirements
@@ -74,7 +85,7 @@ your-project/
   .codex/skills/github   -> ../../.agents/skills/github   # symlink (if selected)
 ```
 
-Only the agents you select get a folder; `.agents` is always created. Existing non-symlink folders are never overwritten.
+Only the agents you select get a folder; `.agents` is always created. On Git Bash the links may be plain copies (see Supported platforms). Existing non-symlink folders are never overwritten.
 
 ### 3. Use it
 
