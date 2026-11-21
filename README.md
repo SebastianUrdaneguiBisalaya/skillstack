@@ -14,21 +14,79 @@ List them any time with `./install.sh --list`.
 
 ## Install
 
+### Requirements
+
+- `bash` (macOS or Linux), `git`
+- To use the `github` skill: [`gh`](https://cli.github.com/) installed and authenticated (`gh auth login`)
+
+### 1. Get the repository
+
 ```sh
 git clone git@github.com:SebastianUrdaneguiBisalaya/skillstack.git
 cd skillstack
-./install.sh                      # interactive: pick skills and agents
+```
+
+### 2. Run the installer
+
+Run it **from the project where you want the skills**, pointing at the cloned script, or use `--target`:
+
+```sh
+cd /path/to/your-project
+/path/to/skillstack/install.sh                 # interactive
+```
+
+The installer shows the available skills, asks which ones to install, then asks which agents to configure:
+
+```
+Skills:
+  1) github   Size a task, split it into issues, ...
+Select skills (numbers, or 'a' for all): 1
+
+Agents (.agents is always created):
+  1) .claude  2) .codex  3) .cursor  4) .gemini
+Select agents (numbers, 'a' for all, empty for none): 1 2
 ```
 
 Non-interactive examples:
 
 ```sh
-./install.sh github --agents claude,codex      # into the current directory
-./install.sh --all --agents all --global       # into $HOME
-./install.sh github --uninstall                # remove
+install.sh --list                                  # list available skills
+install.sh github --agents claude                  # one skill, Claude only
+install.sh github --agents claude,codex            # several agents
+install.sh --all --agents all                      # everything
+install.sh --all --agents all --global             # into $HOME (all projects)
+install.sh github --target /path/to/project        # explicit target
 ```
 
-Skills are copied to `.agents/skills/<name>` (always created) and symlinked into `.claude/`, `.codex/`, `.cursor/` or `.gemini/` for the agents you choose. Run `./install.sh --help` for all options.
+| Option | Meaning |
+| --- | --- |
+| `<name> ...` / `--all` / `--list` | choose skills, or list them |
+| `--agents LIST` | `claude,codex,cursor,gemini` or `all` |
+| `--project` / `--global` / `--target DIR` | where to install (default: current directory) |
+| `--uninstall` | remove the selected skills |
+
+### What it creates
+
+```
+your-project/
+  .agents/skills/github/          # real copy (always created)
+  .claude/skills/github  -> ../../.agents/skills/github   # symlink
+  .codex/skills/github   -> ../../.agents/skills/github   # symlink (if selected)
+```
+
+Only the agents you select get a folder; `.agents` is always created. Existing non-symlink folders are never overwritten.
+
+### 3. Use it
+
+Open the project in your agent (Claude Code, Codex, Cursor, Gemini) and ask for work, for example: "add X to the project". The `github` skill sizes the task, creates the issues, works one branch per issue and opens a PR. You review and merge; the agent never merges.
+
+### Update and uninstall
+
+```sh
+cd /path/to/skillstack && git pull               # get the latest skills
+install.sh github --agents claude                # re-run to refresh (idempotent)
+install.sh github --uninstall                    # remove from .agents and agent folders
+```
 
 ## Layout
 
