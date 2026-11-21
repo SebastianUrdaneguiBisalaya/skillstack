@@ -4,8 +4,9 @@
 # agent folders you choose (.claude, .codex, .cursor, .gemini).
 set -euo pipefail
 
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="${SKILLSTACK_REPO:-SebastianUrdaneguiBisalaya/skillstack}"
 ALL_AGENTS="claude codex cursor gemini"
+SRC=""; TMP=""
 
 usage() {
   cat <<'EOF'
@@ -25,6 +26,9 @@ Scope:
   --project         install into the current directory (default)
   --global          install into $HOME
   --target DIR      install into DIR
+
+Version (when run without a local clone, e.g. via curl):
+  --version TAG     install a specific tag (default: latest tag, else main)
 
 Other:
   --uninstall       remove the selected skills (from .agents and agent folders)
@@ -83,7 +87,7 @@ pick() {
 }
 
 # ---------- options ----------
-skills=(); agents=""; want_all=0; do_list=0; uninstall=0; base="$PWD"
+skills=(); agents=""; want_all=0; do_list=0; uninstall=0; base="$PWD"; version=""
 
 while (( $# )); do
   case "$1" in
@@ -93,6 +97,7 @@ while (( $# )); do
     --project) base="$PWD" ;;
     --global) base="$HOME" ;;
     --target) shift; [[ $# -gt 0 ]] || die "--target needs a directory"; base="$1" ;;
+    --version) shift; [[ $# -gt 0 ]] || die "--version needs a tag"; version="$1" ;;
     --uninstall) uninstall=1 ;;
     -h|--help) usage; exit 0 ;;
     -*) die "unknown option: $1 (see --help)" ;;
@@ -101,11 +106,39 @@ while (( $# )); do
   shift
 done
 
+cleanup() { [[ -n "$TMP" ]] && rm -rf "$TMP"; return 0; }
+trap cleanup EXIT
+
+# Use the local checkout when skills/ sits next to this script; otherwise download.
+script="${BASH_SOURCE[0]:-}"
+if [[ -n "$script" && -f "$script" && -d "$(dirname "$script")/skills" ]]; then
+  SRC="$(cd "$(dirname "$script")" && pwd)"
+  ref="local"
+else
+  command -v curl >/dev/null || die "curl is required to download skillstack"
+  command -v tar >/dev/null || die "tar is required to download skillstack"
+  ref="$version"
+  if [[ -z "$ref" ]]; then
+    ref=""
+    if command -v git >/dev/null; then
+      ref="$(git ls-remote --tags --refs "https://github.com/$REPO.git" 2>/dev/null \
+        | sed 's#.*refs/tags/##' | sort -V | tail -1 || true)"
+    fi
+    [[ -n "$ref" ]] || ref="main"
+  fi
+  url="${SKILLSTACK_ARCHIVE_URL:-https://codeload.github.com/$REPO/tar.gz/$ref}"
+  TMP="$(mktemp -d)"
+  curl -fsSL "$url" | tar -xz -C "$TMP" --strip-components=1 \
+    || die "could not download skillstack ($ref) from $url"
+  SRC="$TMP"
+fi
+
 available=()
 while IFS= read -r s; do available+=("$s"); done < <(list_skills)
 (( ${#available[@]} )) || die "no skills found in $SRC/skills"
 
 banner
+echo "skillstack: $ref"
 
 if (( do_list )); then
   echo "Available skills:"
@@ -113,7 +146,9 @@ if (( do_list )); then
   exit 0
 fi
 
-interactive=0; [[ -t 0 && -t 1 ]] && interactive=1
+# Interactive when stdout is a terminal and /dev/tty is usable (also works when piped from curl).
+interactive=0
+if [[ -t 1 ]] && { : </dev/tty; } 2>/dev/null; then interactive=1; fi
 
 # ---------- choose skills ----------
 if (( want_all )); then
