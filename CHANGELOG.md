@@ -2,6 +2,11 @@
 
 All notable changes are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/); versions are git tags (`vX.Y.Z`).
 
+## [Unreleased]
+
+### Added
+- `github` skill: allow `gh issue comment`, `gh pr diff`, `gh pr comment`, and `gh pr edit`.
+
 ## [0.1.0] - 2026-11-21
 
 ### Added

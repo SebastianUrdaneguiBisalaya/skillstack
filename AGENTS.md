@@ -61,7 +61,7 @@ Rules:
 
 **Merging**: agents must **never** merge (no `gh pr merge`, no pushing to `main`, no force pushes). After opening a PR the agent stops and waits for the user to confirm they merged it. Then: `git checkout main && git pull`, and continue with the next issue.
 
-**Allowed `gh` commands**: `gh issue create|view|list|edit`, `gh pr create|view|list|status|checks`, `gh repo view`. Everything else (notably `gh pr merge`, `gh repo delete`, `gh api -X DELETE`) is forbidden and blocked by `guard-gh.sh`.
+**Allowed `gh` commands**: `gh issue create|view|list|edit|comment`, `gh pr create|view|list|status|checks|diff|comment|edit`, `gh repo view`. Everything else (notably `gh pr merge`, `gh repo delete`, `gh api -X DELETE`) is forbidden and blocked by `guard-gh.sh`.
 
 ## 5. Hooks and validation
 
